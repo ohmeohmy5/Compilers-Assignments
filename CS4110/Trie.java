@@ -18,6 +18,7 @@ public class Trie
     public Trie()
     {
         root = new TrieNode();
+
     }
  
     public void add(String word)
