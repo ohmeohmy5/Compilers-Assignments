@@ -12,27 +12,146 @@ init with {: s.init(); :};
 scan with {: return s.nextToken(); :};
 
 /* Terminals (tokens returned by the scanner). */
-terminal            PROGRAM;
-terminal Integer    NUMBER;        // our scanner provides numbers as integers
+terminal ID, INT, BOOLEAN, DOUBLE, STRING, INT_CONSTANT, DOUBLE_CONSTANT, STRING_CONSTANT, BOOLEAN_CONSTANT, NULL;
 
 /* Non terminals */
-non terminal            expr_list;
-non terminal Integer    expr;      // used to store evaluated subexpressions
+non terminal program, decl, variabledecl, variable, type, functiondecl, formals, classdecl, field, interfacdecl,
+prototype, stmtblock, stmt, ifstmt, whilestmt, forstmt, breakstmt, returnstmt, printstmt, expr, lvalue, call, actuals,
+constant;
 
 /* Precedences */
-precedence left PLUS, MINUS;
-precedence left TIMES;
-precedence left UMINUS;
+precedence left ASSIGN;
+precedence left OR;
+precedence left AND;
+precedence left EQUAL, NOTEQUAL;
+precedence nonassoc LESS_THAN, GREATER_THAN, GREATER_THAN_OR_EQUAL, _LESS_THAN_OR_EQUAL;
+precedence left ADD, SUBTRACT;
+precedence left MULTIPLY, DIVIDE, MOD;
+precedence left NOT, UMINUS;
+precedence left ARRAY_INDEX_START, ARRAY_INDEX_END, FIELD_SELECT;
+precedence nonassoc LEFT_PAREN, RIGHT_PAREN;
 
 /* The grammar rules */
-expr_list ::= expr_list expr:e SEMI         {: System.out.println(e);:}
-            | expr:e SEMI                   {: System.out.println(e);:}
-;
-expr      ::= expr:e1 PLUS  expr:e2         {: RESULT = e1+e2;       :}
-             | expr:e1 MINUS expr:e2        {: RESULT = e1-e2;       :}
-             | expr:e1 TIMES expr:e2        {: RESULT = e1*e2;       :}
-             | MINUS expr:e                 {: RESULT = -e;          :}
-  	     %prec UMINUS
-       | LPAREN expr:e RPAREN	         {: RESULT = e;           :}
-       | NUMBER:n	                     {: RESULT = n;           :}
+start with program;
+
+program ::= DECL //one or more
+    ;
+
+decl ::= variabledecl
+    | functiondecl
+    | classdecl
+    | interfacedecl
+    ;
+
+variabledecl ::= variable;
+    ;
+
+variable ::= type ID
+    ;
+
+type ::= INT
+    | DOUBLE
+    | BOOLEAN
+    | STRING
+    | type ASSIGN_INDEX_START ASSIGN_INDEX_END
+    | ID
+    ;
+
+functiondecl ::= type ID LEFT_PAREN formals RIGHT_PAREN stmtblock
+    | void ID LEFT_PAREN formals RIGHT_PAREN stmtblock
+    ;
+
+formals ::= variable //one or more
+    | NULL
+    ;
+
+classdecl ::= class ID<extends ID> <implements ID//one or more comma > {field one or more}
+    ;
+
+field ::= variabledecl
+    | functiondecl
+    ;
+
+interfacedecl ::= interface ID {prototype//one or more}
+    ;
+
+prototype ::= type ID LEFT_PAREN formals RIGHT_PAREN;
+    | void id LEFT_PAREN formals RIGHT_PAREN;
+    ;
+
+stmtblock ::= {variabledecl//one or more  stmt one or more }
+    ;
+
+stmt ::= <expr> ;
+    | ifstmt
+    | whilestmt
+    | forstmt
+    | breakstmt
+    | returnstmt
+    | printstmt
+    | stmtblock
+    ;
+
+ifstmt ::= if LEFT_PAREN expr RIGHT_PAREN stmt <else stmt>
+    ;
+
+whilestmt ::= while LEFT_PAREN expr RIGHT_PAREN stmt
+    ;
+
+forstmt ::= for LEFT_PAREN <expr>; expr; <expr> RIGHT_PAREN stmt
+    ;
+
+breakstmt ::= break;
+    ;
+
+returnstmt ::= return <expr>;
+    ;
+
+printstmt ::= println LEFTPAREN expr//one or more comma RIGHTPAREN;
+    ;
+
+expr ::= lvalue ASSIGN expr
+    | constant
+    | lvalue
+    | this
+    | call
+    | LEFT_PAREN expr RIGHT_PAREN
+    | expr ADD expr
+    | expr SUBTRACT expr
+    | expr MULTIPLY expr
+    | expr DIVIDE expr
+    | expr MOD expr
+    | UMINUS expr
+    | expr LESS_THAN expr
+    | expr LESS_THAN_OR_EQUAL expr
+    | expr GREATER_THAN expr
+    | expr GREATER_THAN_OR_EQUAL expr
+    | expr EQUAL expr
+    | expr NOT_EQUAL expr
+    | expr AND expr
+    | expr OR expr
+    | NOT expr
+    | readln()
+    | new LEFT_PAREN ID RIGHT_PAREN
+    | newarray LEFT_PAREN INTCONSTANT, type RIGHT_PAREN
+    ;
+
+lvalue ::= ID
+    | lvalue [expr]
+    | lvalue FIELD_SELECT ID
+    ;
+
+call ::= ID LEFT_PAREN actuals RIGHT_PAREN
+    | ID FIELD_SELECT ID LEFT_PAREN actuals RIGHT_PAREN
+    ;
+
+actuals ::= expr//one or more comma
+    | NULL
+    ;
+
+constant ::= INT_CONSTANT
+    | DOUBLE_CONSTANT
+    | STRING_CONSTANT
+    | BOOLEAN_CONSTANT
+    | NULL
              ;
