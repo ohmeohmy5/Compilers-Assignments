@@ -26,3 +26,5 @@ class CS4110{
 	while(x=(Funny/10)<0)println(s,"have fun!");
 	a=newarray(20,int);
 }
+
+test
