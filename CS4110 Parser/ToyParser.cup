@@ -1,0 +1,169 @@
+import java_cup.runtime.*;
+
+parser code {:
+	Lexer l;
+	parser(Lexer l) { this.l = l; }
+:}
+
+init with {: l.init(); :};
+scan with {: return l.next_token(); :};
+
+terminal	BOOLEAN, BREAK, CLASS, DOUBLE, ELSE, EXTENDS, BOOLEANCONSTANT, FOR, IF, IMPLEMENTS;
+terminal	INT, INTERFACE, NEW, NEWARRAY, NULL, PRINTLN, READLN, RETURN, STRING, THIS, VOID;
+terminal	WHILE, PLUS, MINUS, MULTIPLICATION, DIVISION, MOD, LESS, LESSEQUAL, GREATER;
+terminal	GREATEREQUAL, EQUAL, NOTEQUAL, AND, OR, NOT, ASSIGNOP, SEMICOLON, COMMA, PERIOD;
+terminal	LEFTPAREN, RIGHTPAREN, LEFTBRACKET, RIGHTBRACKET, LEFTBRACE, RIGHTBRACE;
+terminal	INTCONSTANT, DOUBLECONSTANT, STRINGCONSTANT, ID, UMINUS;
+
+non terminal	program, decl, variable_decl, variable, type, function_decl, formals;
+non terminal	class_decl, field, interface_decl, prototype, stmt_block, stmt, if_stmt;
+non terminal	while_stmt, for_stmt, break_stmt, return_stmt, print_stmt, expr, lvalue;
+non terminal	call, actuals, constants, interface, print_formals, else_stmt, array_call;
+
+precedence left ASSIGNOP;
+precedence left OR;
+precedence left AND;
+precedence left EQUAL, NOTEQUAL;
+precedence left LESS, LESSEQUAL, GREATER, GREATEREQUAL;
+precedence left PLUS, MINUS;
+precedence left MULTIPLICATION, DIVISION, MOD;
+precedence left NOT, UMINUS;
+precedence left PERIOD, LEFTBRACKET;
+
+program ::= decl
+	| decl program
+	;
+decl ::= variable_decl
+	| function_decl
+	| class_decl
+	| interface_decl
+	;
+variable_decl ::= variable SEMICOLON
+	;
+variable ::= type ID
+	;
+type ::= INT
+	| DOUBLE
+	| BOOLEAN
+	| STRING
+	| ID
+	| INT array_call
+	| DOUBLE array_call
+	| BOOLEAN array_call
+	| STRING array_call
+	| ID array_call
+	;
+array_call ::= LEFTBRACKET RIGHTBRACKET
+	| LEFTBRACKET RIGHTBRACKET array_call
+	;
+function_decl ::= type ID LEFTPAREN formals RIGHTPAREN stmt_block
+	| VOID ID LEFTPAREN formals RIGHTPAREN stmt_block
+	| type ID LEFTPAREN RIGHTPAREN stmt_block
+	| VOID ID LEFTPAREN RIGHTPAREN stmt_block
+	;
+formals ::= variable
+	| variable formals
+	;
+class_decl ::= CLASS ID LEFTBRACE RIGHTBRACE
+	| CLASS ID LEFTBRACE field RIGHTBRACE
+	| CLASS ID EXTENDS ID LEFTBRACE RIGHTBRACE
+	| CLASS ID EXTENDS ID LEFTBRACE field RIGHTBRACE
+	| CLASS ID EXTENDS ID interface LEFTBRACE RIGHTBRACE
+	| CLASS ID EXTENDS ID interface LEFTBRACE field RIGHTBRACE
+	| CLASS ID interface LEFTBRACE RIGHTBRACE
+	| CLASS ID interface LEFTBRACE field RIGHTBRACE
+	;
+interface ::= IMPLEMENTS ID
+	| IMPLEMENTS ID COMMA interface
+	;
+field ::= variable_decl
+	| function_decl
+	;
+interface_decl ::= INTERFACE ID LEFTBRACE RIGHTBRACE
+	| INTERFACE ID LEFTBRACE prototype RIGHTBRACE
+	;
+prototype ::= type ID LEFTPAREN formals RIGHTPAREN SEMICOLON
+	| type ID LEFTPAREN RIGHTPAREN SEMICOLON
+	| VOID ID LEFTPAREN formals RIGHTPAREN SEMICOLON
+	| VOID ID LEFTPAREN RIGHTPAREN SEMICOLON
+	;
+stmt_block ::= LEFTBRACE RIGHTBRACE
+	| LEFTBRACE variable_decl RIGHTBRACE
+	| LEFTBRACE stmt RIGHTBRACE
+	| LEFTBRACE variable_decl stmt RIGHTBRACE
+	;
+stmt ::= SEMICOLON
+	| expr SEMICOLON
+	| if_stmt
+	| while_stmt
+	| for_stmt
+	| break_stmt
+	| return_stmt
+	| print_stmt
+	| stmt_block
+	;
+if_stmt ::= IF LEFTPAREN expr RIGHTPAREN else_stmt
+	;
+else_stmt ::= stmt
+	| ELSE stmt
+	;
+while_stmt ::= WHILE LEFTPAREN expr RIGHTPAREN
+	;
+for_stmt ::= FOR LEFTPAREN SEMICOLON expr SEMICOLON RIGHTPAREN stmt
+	| FOR LEFTPAREN expr SEMICOLON expr SEMICOLON RIGHTPAREN stmt
+	| FOR LEFTPAREN SEMICOLON expr SEMICOLON expr RIGHTPAREN stmt
+	| FOR LEFTPAREN expr SEMICOLON expr SEMICOLON expr RIGHTPAREN stmt
+	;
+break_stmt ::= BREAK SEMICOLON
+	;
+return_stmt ::= RETURN SEMICOLON
+	| RETURN expr SEMICOLON
+	;
+print_stmt ::= PRINTLN LEFTPAREN print_formals RIGHTPAREN SEMICOLON
+	;
+print_formals ::= expr
+	| expr COMMA print_formals
+	;
+expr ::= lvalue ASSIGNOP expr
+	| constants
+	| lvalue
+	| THIS
+	| call
+	| LEFTPAREN expr RIGHTPAREN
+	| expr PLUS expr
+	| expr MINUS expr
+	| expr MULTIPLICATION expr
+	| expr DIVISION expr
+	| expr MOD expr
+	| MINUS expr %prec UMINUS
+	| expr LESS expr
+	| expr LESSEQUAL expr
+	| expr GREATER expr
+	| expr GREATEREQUAL expr
+	| expr EQUAL expr
+	| expr NOTEQUAL expr
+	| expr AND expr
+	| expr OR expr
+	| NOT expr
+	| READLN LEFTPAREN RIGHTPAREN
+	| NEW LEFTPAREN ID RIGHTPAREN
+	| NEWARRAY LEFTPAREN INTCONSTANT COMMA type RIGHTPAREN
+	;
+lvalue ::= ID 
+	| lvalue LEFTBRACKET expr RIGHTBRACKET
+	| lvalue PERIOD ID
+	;
+call ::= ID LEFTPAREN actuals RIGHTPAREN
+	| ID PERIOD ID LEFTPAREN actuals RIGHTPAREN
+	| ID LEFTPAREN RIGHTPAREN
+	| ID PERIOD ID LEFTPAREN RIGHTPAREN
+	;
+actuals ::= expr
+	| expr COMMA actuals
+	;
+constants ::= INTCONSTANT
+	| DOUBLECONSTANT
+	| STRINGCONSTANT
+	| BOOLEANCONSTANT
+	| NULL
+	;
