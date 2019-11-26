@@ -18,7 +18,8 @@ terminal	INTCONSTANT, DOUBLECONSTANT, STRINGCONSTANT, ID, UMINUS;
 non terminal	program, decl, variable_decl, variable, type, function_decl, formals;
 non terminal	class_decl, field, interface_decl, prototype, stmt_block, stmt, if_stmt;
 non terminal	while_stmt, for_stmt, break_stmt, return_stmt, print_stmt, expr, lvalue;
-non terminal	call, actuals, constants, interface, print_formals, else_stmt, array_call;
+non terminal	call, actuals, constants, interface, print_formals, array_call;
+non terminal	field_star, variable_decl_star, stmt_star, prototype_star;
 
 precedence left ASSIGNOP;
 precedence left OR;
@@ -41,17 +42,17 @@ decl ::= variable_decl
 variable_decl ::= variable SEMICOLON
 	;
 variable ::= type ID
+	| ID ID
+	| ID array_call ID
 	;
 type ::= INT
 	| DOUBLE
 	| BOOLEAN
 	| STRING
-	| ID
 	| INT array_call
 	| DOUBLE array_call
 	| BOOLEAN array_call
 	| STRING array_call
-	| ID array_call
 	;
 array_call ::= LEFTBRACKET RIGHTBRACKET
 	| LEFTBRACKET RIGHTBRACKET array_call
@@ -60,27 +61,35 @@ function_decl ::= type ID LEFTPAREN formals RIGHTPAREN stmt_block
 	| VOID ID LEFTPAREN formals RIGHTPAREN stmt_block
 	| type ID LEFTPAREN RIGHTPAREN stmt_block
 	| VOID ID LEFTPAREN RIGHTPAREN stmt_block
+	| ID ID LEFTPAREN formals RIGHTPAREN stmt_block
+	| ID ID LEFTPAREN RIGHTPAREN stmt_block
 	;
 formals ::= variable
-	| variable formals
+	| variable COMMA formals
 	;
 class_decl ::= CLASS ID LEFTBRACE RIGHTBRACE
-	| CLASS ID LEFTBRACE field RIGHTBRACE
+	| CLASS ID LEFTBRACE field_star RIGHTBRACE
 	| CLASS ID EXTENDS ID LEFTBRACE RIGHTBRACE
-	| CLASS ID EXTENDS ID LEFTBRACE field RIGHTBRACE
+	| CLASS ID EXTENDS ID LEFTBRACE field_star RIGHTBRACE
 	| CLASS ID EXTENDS ID interface LEFTBRACE RIGHTBRACE
-	| CLASS ID EXTENDS ID interface LEFTBRACE field RIGHTBRACE
+	| CLASS ID EXTENDS ID interface LEFTBRACE field_star RIGHTBRACE
 	| CLASS ID interface LEFTBRACE RIGHTBRACE
-	| CLASS ID interface LEFTBRACE field RIGHTBRACE
+	| CLASS ID interface LEFTBRACE field_star RIGHTBRACE
 	;
 interface ::= IMPLEMENTS ID
 	| IMPLEMENTS ID COMMA interface
+	;
+field_star ::= field
+	| field field_star
 	;
 field ::= variable_decl
 	| function_decl
 	;
 interface_decl ::= INTERFACE ID LEFTBRACE RIGHTBRACE
-	| INTERFACE ID LEFTBRACE prototype RIGHTBRACE
+	| INTERFACE ID LEFTBRACE prototype_star RIGHTBRACE
+	;
+prototype_star ::= prototype
+	| prototype prototype_star
 	;
 prototype ::= type ID LEFTPAREN formals RIGHTPAREN SEMICOLON
 	| type ID LEFTPAREN RIGHTPAREN SEMICOLON
@@ -88,9 +97,15 @@ prototype ::= type ID LEFTPAREN formals RIGHTPAREN SEMICOLON
 	| VOID ID LEFTPAREN RIGHTPAREN SEMICOLON
 	;
 stmt_block ::= LEFTBRACE RIGHTBRACE
-	| LEFTBRACE variable_decl RIGHTBRACE
-	| LEFTBRACE stmt RIGHTBRACE
-	| LEFTBRACE variable_decl stmt RIGHTBRACE
+	| LEFTBRACE variable_decl_star RIGHTBRACE
+	| LEFTBRACE stmt_star RIGHTBRACE
+	| LEFTBRACE variable_decl_star stmt_star RIGHTBRACE
+	;
+variable_decl_star ::= type ID SEMICOLON
+	| type ID SEMICOLON variable_decl_star
+	;
+stmt_star ::= stmt
+	| stmt stmt_star
 	;
 stmt ::= SEMICOLON
 	| expr SEMICOLON
@@ -102,10 +117,7 @@ stmt ::= SEMICOLON
 	| print_stmt
 	| stmt_block
 	;
-if_stmt ::= IF LEFTPAREN expr RIGHTPAREN else_stmt
-	;
-else_stmt ::= stmt
-	| ELSE stmt
+if_stmt ::= IF LEFTPAREN expr RIGHTPAREN stmt ELSE stmt
 	;
 while_stmt ::= WHILE LEFTPAREN expr RIGHTPAREN
 	;
